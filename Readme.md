@@ -1,5 +1,3 @@
-This project is used for rate limit and most of the code from laravel framework.
-
 ## Requirement
 
 phpredis
@@ -13,18 +11,29 @@ composer require fanqingxuan/ratelimiter
 ## Usage 
 
 ```php
+<?php
+
 require './vendor/autoload.php';
 
 use Json\RateLimiter\Cache;
-use Json\RateLimiter\RedisCache;
+use Json\RateLimiter\RedisStore;
+use Json\RateLimiter\MemcacheStore;
 use Json\RateLimiter\RateLimiter;
 
+/**
 $redis = new Redis;
 $redis->connect('127.0.0.1', 6379);
 
-$redisCache = new RedisCache($redis,'lock');
-
+$redisCache = new RedisStore($redis,'lock');
 $cache = new Cache($redisCache);
+
+*/
+
+$memcache = new Memcache;
+$memcache->connect('127.0.0.1', 11211);
+
+$memcacheStore = new MemcacheStore($memcache,'lock');
+$cache = new Cache($memcacheStore);
 
 $rateLimter = new RateLimiter($cache);
 
@@ -33,12 +42,13 @@ $maxAttempts = 10;
 $seconds = 60;
 
 if($rateLimter->tooManyAttempts("hello",$maxAttempts)) {
-	var_dump("after ".$rateLimter->availableIn($key).' seconds can use');
-	throw new Exception("over the max attempt");
+	var_dump("can use after ".$rateLimter->availableIn($key).' seconds');
+	throw new Exception("over the max attempts");
 }
 
 $rateLimter->hit($key, $seconds);
 
-var_dump("left attempt count:".$rateLimter->retriesLeft($key,$maxAttempts));
+var_dump("left attempt amount:".$rateLimter->retriesLeft($key,$maxAttempts));
+
 ```
 
